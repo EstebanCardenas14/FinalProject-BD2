@@ -3,6 +3,7 @@ const cors = require('cors');
 const path = require('path');
 const logger = require('morgan');
 const colors = require('colors');
+const {mongoDB} = require('./src/database/mongose-connection');
 
 class Server {
 
@@ -14,6 +15,8 @@ class Server {
 
         this.middlewares();
         this.routes();
+
+        mongoDB();
     }
 
     middlewares() {
