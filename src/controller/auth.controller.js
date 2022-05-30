@@ -6,20 +6,16 @@ const db = require('../database/postgres-connection');
 const login = async (req = request, res = response) => {
 
     const { email, password } = req.body;
-   
 
     try {
         // Check if user exists
         const user = await db.query(`SELECT * FROM usuario WHERE correo = '${email}'`);
-        console.log(user.rows);
 
-        let userDB = user.rows[0];
-        console.log(userDB);
-        console.log(user.rows.clave);
-        console.log(userDB.clave);
+        let userDB = {username : user.rows[0].username ,id: user.rows[0].usuario_id, nombre: user.rows[0].nombres, correo: user.rows[0].correo, rol: '', id_rol: 0};
 
         //Check if password is correct
-       // const validatePassword = bcrypt.compareSync(password, userDB.clave);
+        const validatePassword = bcrypt.compareSync(password, userDB.clave);
+        console.log(validatePassword);
 
        //If the password is uncorrect, return an error
         if (!validatePassword) {
@@ -28,7 +24,6 @@ const login = async (req = request, res = response) => {
                 message: 'La contraseña del usuario no coincide'
             });
         }
-        
 
         //Check if user is active
         if (!user.state) {
@@ -36,19 +31,37 @@ const login = async (req = request, res = response) => {
                 message: 'usuario eliminado - no se puede logear'
             })
         }
+
+        //verify if user is admin
+        const admin = await db.query(`SELECT * FROM administrador WHERE usuario_id = ${userDB.usuario_id}`);
+        if (admin.rows.length > 0) {
+            userDB.rol = 'admin';
+            userDB.id_rol = admin.rows[0].administrador_id;
+         }
+
+        //verify if user is client
+        const client = await db.query(`SELECT * FROM comprador WHERE usuario_id = ${userDB.usuario_id}`);
+        if (client.rows.length > 0) {
+            userDB.rol = 'comprador';
+            userDB.id_rol = client.rows[0].comprador_id;
+        }
+
+        //verify if user is seller
+        const seller = await db.query(`SELECT * FROM proveedor WHERE usuario_id = ${userDB.usuario_id}`);
+        if (seller.rows.length > 0) {
+            userDB.rol = 'proveedor';
+            userDB.id_rol = seller.rows[0].proveedor_id;
+        }
         
+       // let userDB = {username : user.rows[0].username ,id: user.rows[0].usuario_id, nombre: user.rows[0].nombres, correo: user.rows[0].correo, rol: '', id_rol: 0};
+
         //If the user is active, return the token
-        const token = await generateJwt(user._id, user.email);
-       
+        const token = await generateJwt(userDB.username, userDB.email, userDB.id, userDB.id_rol);
+
         return res.status(200).json({
             ok: true,
-            token
-        });
-
-        //Returns the error if the user does not exist
-        return res.status(400).json({
-            ok: false,
-            message: 'Email no encontrado'
+            token,
+            userDB
         });
 
     } catch (error) {

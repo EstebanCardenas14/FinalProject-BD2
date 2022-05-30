@@ -13,7 +13,7 @@ const create = async (req = request, res = response) => {
         return res.status(200).json({
             ok: true,
             message: 'Proveedor creado',
-            proveedor: user.rows[0]
+            proveedor: user
         });
 
     } catch (error) {

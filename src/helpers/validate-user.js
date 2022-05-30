@@ -8,8 +8,8 @@ const validateUser = async (id_documento,username, num_doc, telefono, correo, re
         return new Promise(async(resolve, reject) => {
             const doc = await db.query(`SELECT * FROM documento WHERE id_documento = ${id_documento}`);
             const user = await db.query(`SELECT * FROM usuario WHERE username = '${username}'`);
-            const user2 = await db.query(`SELECT * FROM usuario WHERE num_doc = ${num_doc}`);
-            const user3 = await db.query(`SELECT * FROM usuario WHERE telefono = ${telefono}`);
+            const user2 = await db.query(`SELECT * FROM usuario WHERE num_doc = '${num_doc}'`);
+            const user3 = await db.query(`SELECT * FROM usuario WHERE telefono = '${telefono}'`);
             const user4 = await db.query(`SELECT * FROM usuario WHERE correo = '${correo}'`);
             //validate the document type of the user
             if(doc.rowCount === 0){

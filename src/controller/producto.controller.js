@@ -8,7 +8,6 @@ const { Client } = require('redis-om');
 
 const uploadImg = async (req = request, res = response) => {
     try {
-
         const path = await uploadFile(req.files.archivo, ['png', 'jpg', 'jpeg'], 'producto/');
         const pathRoute = `${process.env.ROUTE_IMG}/storage/producto/` + path;
         //console.log(pathRoute);
@@ -34,7 +33,7 @@ const create = async (req = request, res = response) => {
     const { proveedor_id } = req.params;
     const { marca_id, imagen, titulo, descripcion } = req.body;
     try {
-
+    console.log(req.id_rol);
         //validate the existence of the provider
         const proveedor = await db.query(`SELECT * FROM proveedor WHERE proveedor_id = ${proveedor_id}`);
         if (proveedor.rowCount === 0) {

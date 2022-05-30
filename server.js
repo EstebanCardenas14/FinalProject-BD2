@@ -4,7 +4,7 @@ const path = require('path');
 const logger = require('morgan');
 const colors = require('colors');
 const {mongoDB} = require('./src/database/mongose-connection');
-
+require('dotenv').config();
 class Server {
 
     constructor() {
@@ -16,7 +16,7 @@ class Server {
         this.middlewares();
         this.routes();
 
-        mongoDB();
+   //     mongoDB();
     }
 
     middlewares() {
@@ -24,12 +24,15 @@ class Server {
         this.app.use(express.json());
         this.app.use(logger('dev'));
         this.app.use(express.urlencoded({ extended: true }));
-        this.app.use(express.static(path.join(__dirname, 'public')));
+        this.app.use(express.static(path.join(__dirname, 'storage')));
     }
 
     routes() {
-        this.app.use('/user', require('./src/routes/user.routes'));
-        this.app.use('/product', require('./src/routes/product.routes'));
+        this.app.use('/doc', require('./src/routes/documents.routes'));
+        this.app.use('/admin', require('./src/routes/administrador.routes'));
+        this.app.use('/comprador', require('./src/routes/comprador.routes'));
+        this.app.use('/proveedor', require('./src/routes/proveedor.routes'));
+       
     }
 
     launch() {

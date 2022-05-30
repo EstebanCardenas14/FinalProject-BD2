@@ -1,4 +1,3 @@
-
 const { request, response } = require('express');
 const db = require('../database/postgres-connection');
 
@@ -8,6 +7,7 @@ const create = async (req = request, res = response) => {
         const { tipo_documento } = req.body;
 
         //List of document types
+        console.log('Connected to the database'.blue);
         const docVar = await db.query('SELECT * FROM documento');
 
         //Loop through the list of document types to see if the document type already exists

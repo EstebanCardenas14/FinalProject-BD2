@@ -3,9 +3,9 @@ const db = require('../database/postgres-connection');
 const { validateUser, createUser, updateUser } = require('../helpers/index');
 
 const create = async (req = request, res = response) => {
-    const {  id_documento, username, num_doc, nombres, apellidos, telefono, correo, clave  } = req.body;
+    const { id_documento, username, num_doc, nombres, apellidos, telefono, correo, clave } = req.body;
 
-    try{
+    try {
         //verify the existence of the buyer
         await validateUser(id_documento, username, num_doc, telefono, correo);
         //create the buyer
@@ -13,10 +13,10 @@ const create = async (req = request, res = response) => {
         return res.status(200).json({
             ok: true,
             message: 'Comprador creado',
-            comprador: user.rows[0]
+            comprador: user
         });
 
-    }catch(error){
+    } catch (error) {
         return res.status(400).json({
             ok: false,
             message: error
@@ -58,13 +58,13 @@ const getById = async (req = request, res = response) => {
 
 const getAll = async (req = request, res = response) => {
     try {
-         const compradores = [];
-         const data = await db.query(`SELECT * FROM comprador`);
+        const compradores = [];
+        const data = await db.query(`SELECT * FROM comprador`);
 
-         for(let resgister in data.rows){
-                const user = await db.query(`SELECT * FROM usuario WHERE usuario_id = '${data.rows[resgister].usuario_id}'`);
-                compradores.push(user.rows[0]);
-            }
+        for (let resgister in data.rows) {
+            const user = await db.query(`SELECT * FROM usuario WHERE usuario_id = '${data.rows[resgister].usuario_id}'`);
+            compradores.push(user.rows[0]);
+        }
 
         return res.status(200).json({
             ok: true,
@@ -81,9 +81,8 @@ const getAll = async (req = request, res = response) => {
 
 }
 
-
-        //update the buyer
-const updateById = async(req = request, res = response) => {
+//update the buyer
+const updateById = async (req = request, res = response) => {
     try {
 
         const { id } = req.params;

@@ -1,7 +1,7 @@
 const {Router} = require('express');
 const router = Router();
 
-const { create,getAll,deleteById,getById,updateById} = require('../controllers/proveedor.controller');
+const { create,getAll,deleteById,getById,updateById} = require('../controller/proveedor.controller');
 
 router.post('/create', create);
 router.get('/getAll', getAll);

@@ -1,7 +1,7 @@
 const {Router} = require('express');
 const router = Router();
 
-const { create,getById,getAll,remove } = require('../controllers/document.controller');
+const { create,getById,getAll,remove } = require('../controller/document.controller');
 
 router.post('/create', create);
 router.get('/getById/:id', getById);

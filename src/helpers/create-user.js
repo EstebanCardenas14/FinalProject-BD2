@@ -11,7 +11,7 @@ const createUser = async (role, id_documento, username, num_doc, nombres, apelli
             const salt = bcrypt.genSaltSync();
             pass = bcrypt.hashSync(clave, salt);
             //create the user
-            await db.query(`INSERT INTO usuario (doc_id, username, num_doc, nombres, apellidos, telefono, correo, clave, estado) VALUES (${id_documento},'${username}',${num_doc},'${nombres}','${apellidos}',${telefono},'${correo}','${pass}',${true});`);
+            await db.query(`INSERT INTO usuario (doc_id, username, num_doc, nombres, apellidos, telefono, correo, clave, estado) VALUES (${id_documento},'${username}','${num_doc}','${nombres}','${apellidos}','${telefono}','${correo}','${pass}',${true});`);
             //verify the existence of the user
             const user =  await db.query(`SELECT * FROM usuario WHERE username = '${username}'`);
             if (user.rowCount === 0) {

@@ -1,9 +1,8 @@
 const { request, response } = require('express');
-const db = require('../database/postgres-connection');
 const { validateUser, createUser, updateUser } = require('../helpers/index');
 
 const create = async (req = request, res = response) => {
-    const {  id_documento, username, num_doc, nombres, apellidos, telefono, correo, clave  } = req.body;
+    const {id_documento, username, num_doc, nombres, apellidos, telefono, correo, clave} = req.body;
     try{
         //verify the existence of the user
         await validateUser(id_documento, username, num_doc, telefono, correo);
@@ -12,7 +11,7 @@ const create = async (req = request, res = response) => {
         return res.status(200).json({
             ok: true,
             message: 'Administrador creado correctamente',
-            administrador : user.rows[0]
+            administrador : user
         });
 
     }catch(error){
@@ -22,3 +21,7 @@ const create = async (req = request, res = response) => {
         });
     }
 }
+
+module.exports = {
+    create
+};
