@@ -32,6 +32,7 @@ class Server {
         this.app.use('/admin', require('./src/routes/administrador.routes'));
         this.app.use('/comprador', require('./src/routes/comprador.routes'));
         this.app.use('/proveedor', require('./src/routes/proveedor.routes'));
+        this.app.use('/auth', require('./src/routes/auth.routes'));
        
     }
 
