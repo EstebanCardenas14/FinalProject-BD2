@@ -5,14 +5,17 @@ const create = async (req = request, res = response) => {
     try{
         //save the category collected in the body
         const {nombre} = req.body;
-        
+        console.log('Connected to the database...'.blue);
         //Verify if the category already exists
-        const category = await db.query(`SELECT * FROM categoria WHERE nombre = '${nombre}'`);
+        const category = await db.query(`SELECT * FROM categoria`);
         if (category.rowCount > 0) {
-            return res.status(400).json({
-                ok: false,
-                message: 'La categoria ya existe'
-            });
+            const categoryExists = category.rows.find(cat => cat.nombre.toUpperCase() === nombre.toUpperCase());
+            if (categoryExists) {
+                return res.status(400).json({
+                    ok: false,
+                    message: 'La categoría ya existe'
+                });
+            }
         }
 
         //if the category does not exist, create it

@@ -2,6 +2,31 @@ const { request, response } = require('express');
 const db = require('../database/postgres-connection');
 const {uploadFile} = require('../helpers/upload-file');
 
+
+const uploadImg = async (req = request, res = response) => {
+    try{
+
+        const path = await uploadFile(req.files.archivo,['png', 'jpg', 'jpeg'] ,'marca/');
+        const pathRoute = `${process.env.ROUTE_IMG}/storage/marca/`+ path;
+        //console.log(pathRoute);
+        
+        res.status(200).json({
+            ok: true,
+            message: 'Imagen subida con exito',
+            pathRoute
+        });
+
+    }
+    catch(error){
+        //If there is an error return the error
+        return res.status(500).json({
+            ok: false,
+            message: 'Error al actualizar la imagen de la marca',
+            error
+        });
+    }
+}
+
 const create = async (req = request, res = response) => {
     try{
         //Get the name of the marca
@@ -168,29 +193,6 @@ const deleteById = async (req = request, res = response) => {
     }
 }
 
-const uploadImg = async (req = request, res = response) => {
-    try{
-
-        const path = await uploadFile(req.files.archivo,['png', 'jpg', 'jpeg'] ,'marca/');
-        const pathRoute = `${process.env.ROUTE_IMG}/storage/marca/`+ path;
-        //console.log(pathRoute);
-        
-        res.status(200).json({
-            ok: true,
-            message: 'Imagen subida con exito',
-            pathRoute
-        });
-
-    }
-    catch(error){
-        //If there is an error return the error
-        return res.status(500).json({
-            ok: false,
-            message: 'Error al actualizar la imagen de la marca',
-            error
-        });
-    }
-}
 
 
 

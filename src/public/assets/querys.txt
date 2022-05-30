@@ -1,0 +1,14 @@
+--------------------------------------------------------------
+// Traer todos los proveedores con su id y usuario id
+SELECT v.proveedor_id, o.nombres, o.apellidos, o.usuario_id
+FROM proveedor v
+INNER JOIN usuario o
+on v.usuario_id = o.usuario_id
+--------------------------------------------------------------
+//Traer productos con titulo, imagen, descripcion, marca, proveedor
+SELECT producto.titulo, producto.imagen ,producto.descripcion, marca.nombre, proveedor.proveedor_id ,usuario.nombres, usuario.apellidos
+FROM producto
+INNER JOIN marca ON producto.marca_id = producto.marca_id
+LEFT JOIN proveedor ON producto.proveedor_id = proveedor.proveedor_id
+INNER JOIN usuario ON proveedor.usuario_id = usuario.usuario_id
+--------------------------------------------------------------

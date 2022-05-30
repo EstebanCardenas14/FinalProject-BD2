@@ -16,7 +16,6 @@ const create = async (req = request, res = response) => {
             });
         }
 
-
         //verify precio is a number
         if (isNaN(precio)) {
             return res.status(400).json({
@@ -32,7 +31,6 @@ const create = async (req = request, res = response) => {
                 message: 'El stock debe ser un número'
             });
         }
-
 
         //create the variante
         const createVariante = await db.query(`INSERT INTO variante (producto_id,precio,descripcion,caracteristicas,stock,estado) VALUES (${producto_id},${precio},'${descripcion}','${caracteristicas}',${stock},${true}) RETURNING *`);

@@ -66,18 +66,16 @@ const getById = async (req = request, res = response) => {
 const getAll = async (req = request, res = response) => {
     try {
 
-        const proveedores = [];
-        const data = await db.query(`SELECT * FROM proveedor`);
-
-        for (let register in data.rows) {
-            const user = await db.query(`SELECT * FROM usuario WHERE usuario_id = ${data.rows[register].usuario_id}`);
-            proveedores.push(user.rows[0]);
-        }
+        const proveedores = await db.query(
+        `SELECT v.proveedor_id, o.nombres, o.apellidos, o.usuario_id
+        FROM proveedor v
+        INNER JOIN usuario o
+        on v.usuario_id = o.usuario_id`);
 
         return res.status(200).json({
             ok: true,
             message: 'Proveedores encontrados',
-            proveedores
+            proveedores: proveedores.rows
         });
 
     } catch (error) {

@@ -1,14 +1,17 @@
+const path = require('path');
 const { request, response } = require('express');
 const db = require('../database/postgres-connection');
 const { uploadFile, deleteFile } = require('../helpers');
-const redis = require('../database/redis-connection');
-const axios = require('axios');
-const { Client } = require('redis-om');
-
+// const redis = require('../database/redis-connection');
+// const axios = require('axios');
+// const { Client } = require('redis-om');
 
 const uploadImg = async (req = request, res = response) => {
     try {
+        console.log('Entro a la funcion'.yellow);
+        console.log('arvhico -> ',req.files.archivo.name);
         const path = await uploadFile(req.files.archivo, ['png', 'jpg', 'jpeg'], 'producto/');
+        console.log('path', path);
         const pathRoute = `${process.env.ROUTE_IMG}/storage/producto/` + path;
         //console.log(pathRoute);
 
@@ -16,6 +19,49 @@ const uploadImg = async (req = request, res = response) => {
             ok: true,
             message: 'Imagen subida con exito',
             pathRoute
+        });
+
+    }
+    catch (error) {
+        //If there is an error return the error
+        return res.status(500).json({
+            ok: false,
+            message: 'Error al actualizar la imagen del producto',
+            error
+        });
+    }
+}
+
+const deleteImg = async (req = request, res = response) => {
+    try {
+        const { pathRoute } = req.params;
+
+        //verify the existence of the product
+        const product = await db.query(`SELECT * FROM producto WHERE imagen = '${pathRoute}'`);
+        if (product.rowCount === 0) {
+            return res.status(400).json({
+                ok: false,
+                message: 'No existe el producto'
+            });
+        }
+
+        //delete the image
+        await deleteFile(pathRoute);
+
+        //update the product
+        const updateProduct = await db.query(`UPDATE producto SET imagen = '' WHERE imagen = '${pathRoute}' RETURNING *`);
+        console.log(updateProduct.rows[0]);
+        
+        if (updateProduct.rowCount === 0) {
+            return res.status(400).json({
+                ok: false,
+                message: 'No se pudo eliminar la imagen'
+            });
+        }
+
+        return res.status(200).json({
+            ok: true,
+            message: 'Imagen eliminada'
         });
 
     }
@@ -33,7 +79,6 @@ const create = async (req = request, res = response) => {
     const { proveedor_id } = req.params;
     const { marca_id, imagen, titulo, descripcion } = req.body;
     try {
-    console.log(req.id_rol);
         //validate the existence of the provider
         const proveedor = await db.query(`SELECT * FROM proveedor WHERE proveedor_id = ${proveedor_id}`);
         if (proveedor.rowCount === 0) {
@@ -91,25 +136,32 @@ const getProductById = async (req = request, res = response) => {
             });
         }
 
-        let producto = [];
-        const variante = await db.query(`SELECT * FROM variante WHERE producto_id = ${product.rows[0].producto_id}`);
         const proveedor = await db.query(`SELECT * FROM proveedor WHERE proveedor_id = ${product.rows[0].proveedor_id}`);
         const usuario = await db.query(`SELECT * FROM usuario WHERE usuario_id = ${proveedor.rows[0].usuario_id}`);
         const marca = await db.query(`SELECT * FROM marca WHERE marca_id = ${product.rows[0].marca_id}`);
 
-        producto.push({
-              producto_id : product.rows[0].producto_id,
-              variante_id : variante.rows[0].variante_id,
-              marca : marca.rows[0].nombre,
-              proveedor : usuario.rows[0].nombres + ' ' + usuario.rows[0].apellidos,
-              imagen : product.rows[0].imagen,
-              titulo : product.rows[0].titulo,
-              descripcion_1 : product.rows[0].descripcion,
-              descripcion_2 : variante.rows[0].descripcion,
-              caracteristicas : variante.rows[0].caracteristicas,
-              precio : variante.rows[0].precio,
-              stock : variante.rows[0].stock
-        });
+        const producto = { 
+            titulo : product.rows[0].titulo,
+            imagen : product.rows[0].imagen,
+            descripcion : product.rows[0].descripcion,
+            marca : marca.rows[0].nombre,
+            proveedor : usuario.rows[0].nombres + ' ' + usuario.rows[0].apellidos
+        }
+
+        const variants = await db.query(`SELECT * FROM variante WHERE producto_id = ${id}`);
+        if (variants.rowCount === 0) {
+            return res.status(200).json({
+                ok: true,
+                message: 'Este producto no tiene variantes',
+                producto
+            });
+        }
+      
+        let variantes = [];
+        for (let i = 0; i < variants.rowCount; i++) {
+            const variant = await db.query(`SELECT * FROM variante WHERE variante_id = ${variants.rows[i].variante_id}`);
+            variantes.push(variant.rows[0]);
+        }
 
 
         return res.status(200).json({
@@ -130,34 +182,28 @@ const getProductById = async (req = request, res = response) => {
 
 const getAll = async (req = request, res = response) => {
     try {
-        const prod = await db.query(`SELECT * FROM producto`);
+        const prod = await db.query(
+        `SELECT producto.titulo, producto.imagen ,producto.descripcion, marca.nombre, proveedor.proveedor_id ,usuario.nombres, usuario.apellidos
+        FROM producto
+        INNER JOIN marca ON producto.marca_id = producto.marca_id
+        LEFT JOIN proveedor ON producto.proveedor_id = proveedor.proveedor_id
+        INNER JOIN usuario ON proveedor.usuario_id = usuario.usuario_id`);
         if (prod.rowCount === 0) {
             return res.status(400).json({
                 ok: false,
                 message: 'No hay productos'
             });
         }
-
+        console.log(`${prod.rows}`.yellow);
+        //rearrange the array
         let productos = [];
-        for (let index in prod.rows) {
-            const product = await db.query(`SELECT * FROM producto WHERE producto_id = ${prod.rows[index].producto_id}`);
-            const variante = await db.query(`SELECT * FROM variante WHERE producto_id = ${prod.rows[index].producto_id}`);
-            const proveedor = await db.query(`SELECT * FROM proveedor WHERE proveedor_id = ${prod.rows[index].proveedor_id}`);
-            const usuario = await db.query(`SELECT * FROM usuario WHERE usuario_id = ${proveedor.rows[0].usuario_id}`);
-            const marca = await db.query(`SELECT * FROM marca WHERE marca_id = ${product.rows[0].marca_id}`);
-
+        for (let i = 0; i < prod.rows.length; i++) {
             productos.push({
-              producto_id : product.rows[0].producto_id,
-              variante_id : variante.rows[0].variante_id,
-              marca : marca.rows[0].nombre,
-              proveedor : usuario.rows[0].nombres + ' ' + usuario.rows[0].apellidos,
-              imagen : product.rows[0].imagen,
-              titulo : product.rows[0].titulo,
-              descripcion_1 : product.rows[0].descripcion,
-              descripcion_2 : variante.rows[0].descripcion,
-              caracteristicas : variante.rows[0].caracteristicas,
-              precio : variante.rows[0].precio,
-              stock : variante.rows[0].stock
+                titulo : prod.rows[i].titulo,
+                imagen : prod.rows[i].imagen,
+                descripcion : prod.rows[i].descripcion,
+                marca : prod.rows[i].nombre,
+                proveedor : prod.rows[i].nombres + ' ' + prod.rows[i].apellidos
             });
         }
 
@@ -171,6 +217,7 @@ const getAll = async (req = request, res = response) => {
         return res.status(200).json({
             ok: true,
             message: 'Productos encontrados',
+            cantidad : productos.length,
             productos: productos
         });
 
@@ -398,46 +445,44 @@ const getProductsByCategory = async (req = request, res = response) => {
         //get the products
         const cat_prod = await db.query(`SELECT * FROM producto_categoria WHERE categoria_id = ${categoria_id}`);
         if (cat_prod.rowCount === 0) {
-            return res.status(400).json({
-                ok: false,
-                message: 'No hay productos en esta categoria'
+            return res.status(200).json({
+                ok: true,
+                message: `No hay productos en esta categoria : ${categoria.rows[0].nombre}`
             });
         }
 
         let productos = [];
         for (let index in cat_prod.rows) {
             const product = await db.query(`SELECT * FROM producto WHERE producto_id = ${cat_prod.rows[index].producto_id}`);
-            const variante = await db.query(`SELECT * FROM variante WHERE producto_id = ${cat_prod.rows[index].producto_id}`);
             const proveedor = await db.query(`SELECT * FROM proveedor WHERE proveedor_id = ${product.rows[0].proveedor_id}`);
-             const usuario = await db.query(`SELECT * FROM usuario WHERE usuario_id = ${proveedor.rows[0].usuario_id}`);
+            const usuario = await db.query(`SELECT * FROM usuario WHERE usuario_id = ${proveedor.rows[0].usuario_id}`);
             const marca = await db.query(`SELECT * FROM marca WHERE marca_id = ${product.rows[0].marca_id}`);
 
             productos.push({
-              producto_id : product.rows[0].producto_id,
-              variante_id : variante.rows[0].variante_id,
-              marca : marca.rows[0].nombre,
-              proveedor : usuario.rows[0].nombres + ' ' + usuario.rows[0].apellidos,
-              imagen : product.rows[0].imagen,
-              titulo : product.rows[0].titulo,
-              descripcion_1 : product.rows[0].descripcion,
-              descripcion_2 : variante.rows[0].descripcion,
-              caracteristicas : variante.rows[0].caracteristicas,
-              precio : variante.rows[0].precio,
-              stock : variante.rows[0].stock
+                titulo : product.rows[0].titulo,
+                imagen : product.rows[0].imagen,
+                descripcion : product.rows[0].descripcion,
+                marca : marca.rows[0].nombre,
+                proveedor : usuario.rows[0].nombres + ' ' + usuario.rows[0].apellidos,
             });
         }
+
+        console.log(productos);
 
         if (productos.length === 0) {
             return res.status(400).json({
-                ok: false,
-                message: 'Error al obtener los productos'
+                ok: true,
+                message: 'error al obtener los productos'
             });
         }
 
+        console.log('productos');
+
         return res.status(200).json({
             ok: true,
-            message: 'Productos obtenidos',
-            productos
+            message: `Productos encontrados en la categoria : ${categoria.rows[0].nombre}`,
+            cantidad : productos.length,
+            productos: productos
         });
     } catch (error) {
         return res.status(400).json({

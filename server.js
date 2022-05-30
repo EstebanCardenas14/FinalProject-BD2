@@ -3,7 +3,8 @@ const cors = require('cors');
 const path = require('path');
 const logger = require('morgan');
 const colors = require('colors');
-const {mongoDB} = require('./src/database/mongose-connection');
+const fileUpload = require('express-fileupload');
+const { mongoDB } = require('./src/database/mongose-connection');
 require('dotenv').config();
 class Server {
 
@@ -16,7 +17,7 @@ class Server {
         this.middlewares();
         this.routes();
 
-   //     mongoDB();
+        //     mongoDB();
     }
 
     middlewares() {
@@ -24,7 +25,14 @@ class Server {
         this.app.use(express.json());
         this.app.use(logger('dev'));
         this.app.use(express.urlencoded({ extended: true }));
-        this.app.use(express.static(path.join(__dirname, 'storage')));
+        //static images
+        this.app.use('/storage', express.static(path.join(__dirname, 'src/storage')));
+        //Fileupload - carga de archivos
+        this.app.use(fileUpload({
+            useTempFiles: true,
+            tempFileDir: '/tmp/',
+            createParentPath: true
+        }));
     }
 
     routes() {
@@ -33,7 +41,11 @@ class Server {
         this.app.use('/comprador', require('./src/routes/comprador.routes'));
         this.app.use('/proveedor', require('./src/routes/proveedor.routes'));
         this.app.use('/auth', require('./src/routes/auth.routes'));
-       
+        this.app.use('/categoria', require('./src/routes/categoria.routes'));
+        this.app.use('/marca', require('./src/routes/marca.routes'));
+        this.app.use('/producto', require('./src/routes/producto.routes'));
+        this.app.use('/variante', require('./src/routes/variante.routes'));
+
     }
 
     launch() {

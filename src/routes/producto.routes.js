@@ -1,7 +1,7 @@
 const {Router} = require('express');
 const router = Router();
 
-const {uploadImg, create,getAll,updateById,deleteById,getProductById, addCategories,getProductsByCategory,getProductByTitle} = require('../controllers/producto.controller');
+const {uploadImg, create,getAll,updateById,deleteById,getProductById, addCategories,getProductsByCategory,getProductByTitle} = require('../controller/producto.controller');
 
 router.post('/img', uploadImg);
 router.post('/create/:proveedor_id', create);

@@ -3,7 +3,7 @@ const { v4: uuidv4 } = require('uuid');
 
 const uploadFile = (file,validExtensions,save = '' ) => {
     return new Promise((resolve, reject) => {
-        
+      try {
         let cutName = file.name.split('.');
         let extension = cutName[cutName.length - 1];
         
@@ -18,6 +18,9 @@ const uploadFile = (file,validExtensions,save = '' ) => {
             }
             resolve(name);
         });
+      } catch (error) {
+        reject({ message: 'Error al subir el archivo', error });
+      }
     });
 }
 
