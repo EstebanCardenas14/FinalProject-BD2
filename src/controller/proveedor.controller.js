@@ -1,19 +1,32 @@
 const { request, response } = require('express');
 const db = require('../database/postgres-connection');
 const { validateUser, createUser, updateUser } = require('../helpers/index');
+const Proveedor = require('../models/Neo4j/proveedor');
+const proveedor = new Proveedor();
 
 const create = async (req = request, res = response) => {
     const { id_documento, username, num_doc, nombres, apellidos, telefono, correo, clave } = req.body;
-
     try {
         //verify the existence of the supplier
         await validateUser(id_documento, username, num_doc, telefono, correo);
         //create the supplier
         const user = await createUser('Proveedor', id_documento, username, num_doc, nombres, apellidos, telefono, correo, clave);
+        const proveedorDB = await db.query(`SELECT * FROM proveedor WHERE usuario_id = ${user.usuario_id}`);
+        if (proveedorDB.rowCount === 0) {
+            return res.status(400).json({
+                ok: false,
+                message: 'El proveedor no existe'
+            });
+        }
+        //create the provider on Neo4j
+        const proveedorNoe = { proveedor_id : proveedorDB.rows[0].proveedor_id, nombres: user.nombres, apellidos: user.apellidos, num_doc: user.num_doc };
+        const neoCreate = await proveedor.createProv(proveedorNoe);
         return res.status(200).json({
             ok: true,
             message: 'Proveedor creado',
-            proveedor: user
+            proveedor: user,
+            neoProveedor: neoCreate,
+            msg : "Proveedor creado en Neo4j"
         });
 
     } catch (error) {

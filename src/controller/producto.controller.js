@@ -1,7 +1,11 @@
 const path = require('path');
 const { request, response } = require('express');
 const db = require('../database/postgres-connection');
-const { uploadFile, deleteFile } = require('../helpers');
+const { uploadFile, deleteFile } = require('../helpers');   
+const Producto = require('../models/Neo4j/producto');
+const Categoria = require('../models/Neo4j/categoria');
+const producto = new Producto();
+const cateNeo = new Categoria();
 // const redis = require('../database/redis-connection');
 // const axios = require('axios');
 // const { Client } = require('redis-om');
@@ -105,11 +109,16 @@ const create = async (req = request, res = response) => {
                 message: 'El producto no se pudo crear'
             });
         }
+        
+        let prodNeo = { titulo :   createProduct.rows[0].titulo, marca : marca.rows[0].nombre, producto_id : createProduct.rows[0].producto_id, proveedor_id :proveedor.rows[0].proveedor_id }
+        //create product in neo4j
+        const prodNoeResponse = producto.createProducto(prodNeo);
 
         return res.status(200).json({
             ok: true,
             message: 'Producto creado',
-            producto: createProduct.rows[0]
+            producto: createProduct.rows[0],
+            neo4j: prodNoeResponse
         });
 
     } catch (error) {
@@ -416,11 +425,14 @@ const addCategories = async (req = request, res = response) => {
             });
         }
 
+        let prod_cat = { producto_id : producto_id, categoria_id : categoria_id};
+        const respons = cateNeo.addCategoria(prod_cat);
+
         return res.status(200).json({
             ok: true,
             message: `La categoria ${categoria.rows[0].nombre} se agrego correctamente al producto : ${product.rows[0].titulo}`
-
         });
+        
     } catch (error) {
         return res.status(400).json({
             ok: false,

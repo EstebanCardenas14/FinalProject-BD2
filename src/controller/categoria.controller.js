@@ -1,10 +1,12 @@
 const { request, response } = require('express');
 const db = require('../database/postgres-connection');
+const Categoria = require('../models/Neo4j/categoria');
+const categoria = new Categoria();
 
 const create = async (req = request, res = response) => {
-    try{
+    try {
         //save the category collected in the body
-        const {nombre} = req.body;
+        const { nombre } = req.body;
         console.log('Connected to the database...'.blue);
         //Verify if the category already exists
         const category = await db.query(`SELECT * FROM categoria`);
@@ -20,19 +22,21 @@ const create = async (req = request, res = response) => {
 
         //if the category does not exist, create it
         const created = await db.query(`INSERT INTO categoria (nombre, estado) VALUES ('${nombre}', ${true}) RETURNING *`);
-        if (created.rowCount > 0) {
-            return res.status(200).json({
-                ok: true,
-                category: created.rows[0]
-            });
+        if (created.rowCount === 0) {
+            return res.status(400).json({
+                ok: false,
+                message: 'Error al crear la categoría'
+            })
         }
+        let catDB = { nombre: created.rows[0].nombre, categoria_id: created.rows[0].categoria_id };
+        const response = await categoria.createCategoria(catDB);
 
-        //if the category was not created return an error
-        return res.status(404).json({
-            ok: false,
-            message: 'Categoria no creada'
+        return res.status(200).json({
+            ok: true,
+            message : 'Categoria creada con exito',
+            categoria : created.rows[0],
+            categoriaNeo : response
         });
-
 
     } catch (error) {
         //if there is an error return the error
@@ -48,7 +52,7 @@ const getById = async (req = request, res = response) => {
     try {
 
         //save the id of the category collected in the body
-        const {id} = req.params;
+        const { id } = req.params;
 
         //list the category
         const category = await db.query(`SELECT * FROM categoria WHERE categoria_id = '${id}'`);
@@ -114,12 +118,12 @@ const update = async (req = request, res = response) => {
     try {
 
         //bring the id of the category in the params
-        const {id} = req.params;
+        const { id } = req.params;
 
         //bring the category data in the body
-        const {nombre} = req.body;
+        const { nombre } = req.body;
 
-       //edit the category
+        //edit the category
         const updated = await db.query(`UPDATE categoria SET nombre = '${nombre}' WHERE categoria_id = '${id}' RETURNING *`);
 
         //return the updated category
@@ -152,9 +156,9 @@ const deleteById = async (req = request, res = response) => {
     try {
 
         //save the id of the category collected in the body
-        const {id} = req.params;
+        const { id } = req.params;
 
-       //verify if the category exists
+        //verify if the category exists
         const category = await db.query(`SELECT * FROM categoria WHERE categoria_id = '${id}'`);
         if (category.rowCount > 0) {
             //delete the category
@@ -171,7 +175,7 @@ const deleteById = async (req = request, res = response) => {
             ok: false,
             message: 'No existe la categoria'
         });
-        
+
 
     } catch (error) {
         //if there is an error return the error

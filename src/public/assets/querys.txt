@@ -12,3 +12,15 @@ INNER JOIN marca ON producto.marca_id = producto.marca_id
 LEFT JOIN proveedor ON producto.proveedor_id = proveedor.proveedor_id
 INNER JOIN usuario ON proveedor.usuario_id = usuario.usuario_id
 --------------------------------------------------------------
+//Neo4j
+MATCH (p:PERSON)-[:LIVES]->(c:CITY) 
+WITH p,count(c) as rels, collect(c) as cities
+WHERE rels > 1
+RETURN p,cities, rels
+--------------------------------------------------------------
+//Traer relaciones y usuarios en Neo4j
+MATCH (ee:Person)-[:DIRECTED]-(mov)
+WHERE ee.name = 'Andy Wachowski' RETURN ee, mov
+--------------------------------------------------------------
+MATCH (ee:Person)-[:KNOWS]-(friends)
+WHERE ee.name = 'Emil' RETURN ee, friends
