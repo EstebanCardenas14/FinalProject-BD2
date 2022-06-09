@@ -48,24 +48,23 @@ class Producto {
         const buy = async () => {
             try {
                 //verify if the product exists
-                const result = await session.run(`MATCH (u:Product {_id : '${id_product}'} ) return u limit 1`)
+                const result = await session.run(`MATCH (u:Producto {producto_id : '${producto.producto_id}'} ) return u limit 1`)
                 if (result.records.length === 0) {
                     return 'Product not found'
                 }
                 //verify if the buyer exists
-                const result2 = await session.run(`MATCH (u:Buyer {_id : '${id_buyer}'} ) return u limit 1`)
+                const result2 = await session.run(`MATCH (n:Comprador {comprador_id : ${producto.comprador_id}} ) return n limit 1`)
                 if (result2.records.length === 0) {
                     return 'Buyer not found'
                 }
                 //create the relationship between the producto and the buyer
-                await session.run(`MATCH (u:Buyer {_id : '${id_buyer}'}), (v:Product {_id : '${id_product}'}) CREATE (u)-[:BUY]->(v)`);
-                console.log(color.green('Relationship created'));
-                return await findById(id_product)
+                await session.run(`MATCH (c:Comprador {comprador_id : ${producto.comprador_id}}), (p:Producto {producto_id : '${producto.producto_id}'}) CREATE (c)-[:Compra]->(p)`);
+                return 'Relationship created'
             } catch (error) {
                 return 'Error in buy product'
             }
         };
-        return buy(producto, producto.seller_id);
+        return buy();
     }
 
     recommendProducto(producto) {

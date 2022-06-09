@@ -17,7 +17,7 @@ class Server {
         this.middlewares();
         this.routes();
 
-        //     mongoDB();
+        mongoDB();
     }
 
     middlewares() {
@@ -45,6 +45,7 @@ class Server {
         this.app.use('/producto', require('./src/routes/producto.routes'));
         this.app.use('/variante', require('./src/routes/variante.routes'));
         this.app.use('/carrito', require('./src/routes/carrito.routes'));
+        
 
     }
 

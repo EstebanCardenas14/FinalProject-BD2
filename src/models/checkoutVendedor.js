@@ -1,18 +1,12 @@
 const {Schema, model} = require('mongoose');
-const checkoutSchema = new Schema({
-    usuario_id: {
-        type: String,
-    },
-    comprador_id : {
-        type: String,
-    },
-    comprador : {
-        type: String,
-    },
-    proveedor_id : {
-        type: String,
+const checkoutVendedorSchema = new Schema({
+    proveedor_id: {
+        type: Number,
     },
     proveedor : {
+        type: String,
+    },
+    NIT : {
         type: String,
     },
     direccion : {
@@ -25,29 +19,28 @@ const checkoutSchema = new Schema({
         type: String,
     },
     fecha_registro : {
-        type: Date,
-        default: Date.now
+        type: String
     },
     carrito_id : {
         type: Number,
     },
-    productos : [{
+    productos_vendidos : [{
         producto_id : {
             type: Number,
         },
-        viriante_id : {
+        variante_id : {
             type: Number,
         },
-        proveedor_id : {
+        comprador_id : {
             type: Number,
         },
-        proveedor : {
-            type: String,
-        },
-        marca : {
+        comprador : {
             type: String,
         },
         producto : {
+            type: String,
+        },
+        variante : {
             type: String,
         },
         cantidad : {
@@ -60,30 +53,13 @@ const checkoutSchema = new Schema({
             type: Number,
         }
     }],
-    tarjeta : {
-        tipo : {
-            type: String,
-        },
-        numero : {
-            type: String,
-        },
-        nombre : {
-            type: String,
-        },
-        expiracion : {
-            type: String,
-        },
-        cvv : {
-            type: String,
-        }
-    },
-    total : {
-        type: Number,
+    estado : {
+        type: String,
     }
 });
 
-checkoutSchema.methods.toJSON = function () {
+checkoutVendedorSchema.methods.toJSON = function () {
     const {__v, ...data } = this.toObject();
     return data;
 }
-module.exports = model('Checkout',checkoutSchema);
+module.exports = model('CheckoutVendedor',checkoutVendedorSchema);

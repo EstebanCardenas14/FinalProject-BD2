@@ -1,0 +1,85 @@
+const {Schema, model} = require('mongoose');
+const checkoutClienteSchema = new Schema({
+    usuario_id: {
+        type: Number,
+    },
+    usuario : {
+        type: String,
+    },
+    tipo_documento : {
+        type: String,
+    },
+    documento : {
+        type: String,
+    },
+    direccion : {
+        type: String,
+    },
+    telefono : {
+        type: String,
+    },
+    email : {
+        type: String,
+    },
+    fecha_registro : {
+        type: String
+    },
+    carrito_id : {
+        type: Number,
+    },
+    productos : [{
+        producto_id : {
+            type: Number,
+        },
+        viriante_id : {
+            type: Number,
+        },
+        proveedor_id : {
+            type: Number,
+        },
+        proveedor : {
+            type: String,
+        },
+        marca : {
+            type: String,
+        },
+        producto : {
+            type: String,
+        },
+        cantidad : {
+            type: Number,
+        },
+        precio : {
+            type: Number,
+        },
+        subtotal : {
+            type: Number,
+        }
+    }],
+    tarjeta : {
+        tipo : {
+            type: String,
+        },
+        numero : {
+            type: String,
+        },
+        expiracion : {
+            type: String,
+        },
+        cvv : {
+            type: String,
+        }
+    },
+    total : {
+        type: Number,
+    },
+    estado : {
+        type: String,
+    }
+});
+
+checkoutClienteSchema.methods.toJSON = function () {
+    const {__v, ...data } = this.toObject();
+    return data;
+}
+module.exports = model('CheckoutCliente',checkoutClienteSchema);
