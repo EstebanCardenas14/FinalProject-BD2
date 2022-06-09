@@ -24,3 +24,10 @@ WHERE ee.name = 'Andy Wachowski' RETURN ee, mov
 --------------------------------------------------------------
 MATCH (ee:Person)-[:KNOWS]-(friends)
 WHERE ee.name = 'Emil' RETURN ee, friends
+//-----------------------------------------
+//Traer las variantes con sus fotos
+SELECT v.descripcion, o.imagen, v.caracteristicas, v.stock
+FROM variante v
+INNER JOIN foto_variante o
+on v.variante_id = o.variante_id
+where v.producto_id = 1;

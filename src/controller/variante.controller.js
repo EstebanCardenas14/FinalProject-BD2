@@ -74,17 +74,10 @@ const uploadImg = async (req = request, res = response) => {
         }
 
         //upload the image
-        const path = await uploadFile(req.files.archivo, ['png', 'jpg', 'jpeg'], 'variante/');
-        const pathRoute = `${process.env.ROUTE_IMG}/storage/variante/` + path;
-        if(!pathRoute){
-            return res.status(400).json({
-                ok: false,
-                message: 'Error al subir la imagen'
-            });
-        }
+        const path = await uploadFile(req.files.archivo, ['png', 'jpg', 'jpeg','webp']);
         let description = `Foto de la variante de : ${variante.rows[0].descripcion}, con id de variante : ${variante.rows[0].variante_id}`;
         //save the photo
-        const savePhoto = await db.query(`INSERT INTO foto_variante (variante_id,imagen,descripcion,estado) VALUES (${variante_id},'${pathRoute}','${description}',${true}) RETURNING *`);
+        const savePhoto = await db.query(`INSERT INTO foto_variante (variante_id,imagen,descripcion,estado) VALUES (${variante_id},'${path}','${description}',${true}) RETURNING *`);
 
         res.status(200).json({
             ok: true,

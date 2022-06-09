@@ -1,12 +1,8 @@
 const {Router} = require('express');
 const router = Router();
 
-const { create,getAll,updateById,deleteById,getById} = require('../controller/comprador.controller');
+const { create} = require('../controller/comprador.controller');
 
 router.post('/create', create);
-router.get('/getAll', getAll);
-router.get('/getById/:id', getById);
-router.delete('/remove/:id', deleteById);
-router.put('/update/:id', updateById);
 
 module.exports = router;

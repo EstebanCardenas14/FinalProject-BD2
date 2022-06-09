@@ -1,15 +1,18 @@
 const {Schema, model} = require('mongoose');
 const checkoutSchema = new Schema({
     usuario_id: {
-        type: Number,
-    },
-    usuario : {
         type: String,
     },
-    tipo_documento : {
+    comprador_id : {
         type: String,
     },
-    documento : {
+    comprador : {
+        type: String,
+    },
+    proveedor_id : {
+        type: String,
+    },
+    proveedor : {
         type: String,
     },
     direccion : {

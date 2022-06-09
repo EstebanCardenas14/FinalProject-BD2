@@ -37,7 +37,6 @@ class Server {
 
     routes() {
         this.app.use('/doc', require('./src/routes/documents.routes'));
-        this.app.use('/admin', require('./src/routes/administrador.routes'));
         this.app.use('/comprador', require('./src/routes/comprador.routes'));
         this.app.use('/proveedor', require('./src/routes/proveedor.routes'));
         this.app.use('/auth', require('./src/routes/auth.routes'));
@@ -45,6 +44,7 @@ class Server {
         this.app.use('/marca', require('./src/routes/marca.routes'));
         this.app.use('/producto', require('./src/routes/producto.routes'));
         this.app.use('/variante', require('./src/routes/variante.routes'));
+        this.app.use('/carrito', require('./src/routes/carrito.routes'));
 
     }
 

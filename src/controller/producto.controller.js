@@ -12,17 +12,12 @@ const cateNeo = new Categoria();
 
 const uploadImg = async (req = request, res = response) => {
     try {
-        console.log('Entro a la funcion'.yellow);
-        console.log('arvhico -> ',req.files.archivo.name);
-        const path = await uploadFile(req.files.archivo, ['png', 'jpg', 'jpeg'], 'producto/');
-        console.log('path', path);
-        const pathRoute = `${process.env.ROUTE_IMG}/storage/producto/` + path;
-        //console.log(pathRoute);
-
+        const path = await uploadFile(req.files.archivo, ['png', 'jpg', 'jpeg','webp']);
+ 
         res.status(200).json({
             ok: true,
             message: 'Imagen subida con exito',
-            pathRoute
+            path
         });
 
     }
@@ -54,7 +49,7 @@ const deleteImg = async (req = request, res = response) => {
 
         //update the product
         const updateProduct = await db.query(`UPDATE producto SET imagen = '' WHERE imagen = '${pathRoute}' RETURNING *`);
-        console.log(updateProduct.rows[0]);
+        
         
         if (updateProduct.rowCount === 0) {
             return res.status(400).json({
@@ -122,7 +117,6 @@ const create = async (req = request, res = response) => {
         });
 
     } catch (error) {
-        console.log(error);
         return res.status(400).json({
             ok: false,
             message: 'Error en el servidor',
@@ -157,26 +151,38 @@ const getProductById = async (req = request, res = response) => {
             proveedor : usuario.rows[0].nombres + ' ' + usuario.rows[0].apellidos
         }
 
-        const variants = await db.query(`SELECT * FROM variante WHERE producto_id = ${id}`);
+        const variants = await db.query(
+        `SELECT v.variante_id,v.descripcion, o.imagen, v.caracteristicas, v.stock
+        FROM variante v
+        INNER JOIN foto_variante o
+        on v.variante_id = o.variante_id
+        where v.producto_id = ${product.rows[0].producto_id};`
+        );
         if (variants.rowCount === 0) {
-            return res.status(200).json({
-                ok: true,
-                message: 'Este producto no tiene variantes',
-                producto
+            return res.status(400).json({
+                ok: false,
+                message: 'El producto no tiene variantes'
             });
         }
-      
-        let variantes = [];
-        for (let i = 0; i < variants.rowCount; i++) {
-            const variant = await db.query(`SELECT * FROM variante WHERE variante_id = ${variants.rows[i].variante_id}`);
-            variantes.push(variant.rows[0]);
+        
+        let variantsArray = [{variante_id : 0, descripcion : '', caracteristicas : '', stock : 0, imagenes : []}];
+        for(let vari of variants.rows){
+            let index = variantsArray.findIndex(x => x.variante_id === vari.variante_id);
+            if (index === -1) {
+                variantsArray.push({variante_id : vari.variante_id, descripcion : vari.descripcion, caracteristicas : vari.caracteristicas, stock : vari.stock, imagenes : [vari.imagen]});
+            }
+            else {
+                variantsArray[index].imagenes.push(vari.imagen);
+            }
         }
-
+        //delete the first element
+        variantsArray.shift();
 
         return res.status(200).json({
             ok: true,
             message: 'Producto encontrado',
-            producto: producto
+            producto: producto,
+            variantes: variantsArray
         });
 
     } catch (error) {
@@ -203,7 +209,6 @@ const getAll = async (req = request, res = response) => {
                 message: 'No hay productos'
             });
         }
-        console.log(`${prod.rows}`.yellow);
         //rearrange the array
         let productos = [];
         for (let i = 0; i < prod.rows.length; i++) {
@@ -478,17 +483,12 @@ const getProductsByCategory = async (req = request, res = response) => {
                 proveedor : usuario.rows[0].nombres + ' ' + usuario.rows[0].apellidos,
             });
         }
-
-        console.log(productos);
-
         if (productos.length === 0) {
             return res.status(400).json({
                 ok: true,
                 message: 'error al obtener los productos'
             });
         }
-
-        console.log('productos');
 
         return res.status(200).json({
             ok: true,
