@@ -209,16 +209,16 @@ const getAll = async (req = request, res = response) => {
 
         let productos = [];
         for (let product of products.rows) {
-            console.log('Producto'.yellow,product);
+   
             let proveedor = await db.query(`SELECT * FROM proveedor WHERE proveedor_id = ${product.proveedor_id}`);
-            console.log('Proveedor'.yellow,proveedor.rows);
+           
             let usuario = await db.query(`SELECT * FROM usuario WHERE usuario_id = ${proveedor.rows[0].usuario_id}`);
-            console.log('Usuario'.yellow,usuario.rows);
+       
             let marca = await db.query(`SELECT * FROM marca WHERE marca_id = ${product.marca_id}`);
-            console.log('Marca'.yellow,marca.rows);
+            
             let variante = await db.query(`SELECT * FROM variante WHERE producto_id = ${product.producto_id}`);
-            console.log('Variante'.yellow,variante.rows);
-            console.log('Variante'.blue,variante.rows[0]);
+            let stockTotal = 0;
+            for(let variantStock of variante.rows){(stockTotal += parseInt(variantStock.stock))};
             productos.push({
                 producto_id: product.producto_id,
                 titulo: product.titulo,
@@ -226,7 +226,8 @@ const getAll = async (req = request, res = response) => {
                 descripcion: product.descripcion,
                 marca: marca.rows[0].nombre,
                 proveedor: usuario.rows[0].nombres + ' ' + usuario.rows[0].apellidos,
-                precio : variante.rows[0].precio
+                precio : variante.rows[0].precio,
+                stockTotal : stockTotal
             });
         }
 
@@ -471,6 +472,9 @@ const getProductsByCategory = async (req = request, res = response) => {
         let productos = [];
         for (let index in cat_prod.rows) {
             const product = await db.query(`SELECT * FROM producto WHERE producto_id = ${cat_prod.rows[index].producto_id}`);
+            const variant = await db.query(`SELECT * FROM variante WHERE producto_id = ${cat_prod.rows[index].producto_id}`);
+            let stockTotal = 0;
+            for(let variantStock of variant.rows){(stockTotal += parseInt(variantStock.stock))};
             const proveedor = await db.query(`SELECT * FROM proveedor WHERE proveedor_id = ${product.rows[0].proveedor_id}`);
             const usuario = await db.query(`SELECT * FROM usuario WHERE usuario_id = ${proveedor.rows[0].usuario_id}`);
             const marca = await db.query(`SELECT * FROM marca WHERE marca_id = ${product.rows[0].marca_id}`);
@@ -482,6 +486,8 @@ const getProductsByCategory = async (req = request, res = response) => {
                 descripcion : product.rows[0].descripcion,
                 marca : marca.rows[0].nombre,
                 proveedor : usuario.rows[0].nombres + ' ' + usuario.rows[0].apellidos,
+                precio : variant.rows[0].precio,
+                stockTotal : stockTotal
             });
         }
         if (productos.length === 0) {
