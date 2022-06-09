@@ -197,44 +197,44 @@ const getProductById = async (req = request, res = response) => {
 
 const getAll = async (req = request, res = response) => {
     try {
-        const prod = await db.query(
-        `SELECT producto.titulo, producto.imagen ,producto.descripcion, marca.nombre, proveedor.proveedor_id ,usuario.nombres, usuario.apellidos
-        FROM producto
-        INNER JOIN marca ON producto.marca_id = producto.marca_id
-        LEFT JOIN proveedor ON producto.proveedor_id = proveedor.proveedor_id
-        INNER JOIN usuario ON proveedor.usuario_id = usuario.usuario_id`);
-        if (prod.rowCount === 0) {
+        const products = await db.query(`SELECT * FROM producto`);
+        console.log('Productos'.yellow,products.rows);
+        
+        if (products.rowCount === 0) {
             return res.status(400).json({
                 ok: false,
                 message: 'No hay productos'
-            });
-        }
-        //rearrange the array
-        let productos = [];
-        for (let i = 0; i < prod.rows.length; i++) {
-            productos.push({
-                titulo : prod.rows[i].titulo,
-                imagen : prod.rows[i].imagen,
-                descripcion : prod.rows[i].descripcion,
-                marca : prod.rows[i].nombre,
-                proveedor : prod.rows[i].nombres + ' ' + prod.rows[i].apellidos
             });
         }
 
-        if (productos.length === 0) {
-            return res.status(400).json({
-                ok: false,
-                message: 'No hay productos'
+        let productos = [];
+        for (let product of products.rows) {
+            console.log('Producto'.yellow,product);
+            let proveedor = await db.query(`SELECT * FROM proveedor WHERE proveedor_id = ${product.proveedor_id}`);
+            console.log('Proveedor'.yellow,proveedor.rows);
+            let usuario = await db.query(`SELECT * FROM usuario WHERE usuario_id = ${proveedor.rows[0].usuario_id}`);
+            console.log('Usuario'.yellow,usuario.rows);
+            let marca = await db.query(`SELECT * FROM marca WHERE marca_id = ${product.marca_id}`);
+            console.log('Marca'.yellow,marca.rows);
+            let variante = await db.query(`SELECT * FROM variante WHERE producto_id = ${product.producto_id}`);
+            console.log('Variante'.yellow,variante.rows);
+            console.log('Variante'.blue,variante.rows[0]);
+            productos.push({
+                producto_id: product.producto_id,
+                titulo: product.titulo,
+                imagen: product.imagen,
+                descripcion: product.descripcion,
+                marca: marca.rows[0].nombre,
+                proveedor: usuario.rows[0].nombres + ' ' + usuario.rows[0].apellidos,
+                precio : variante.rows[0].precio
             });
         }
 
         return res.status(200).json({
             ok: true,
             message: 'Productos encontrados',
-            cantidad : productos.length,
-            productos: productos
+            productos : productos
         });
-
     } catch (error) {
         return res.status(400).json({
             ok: false,
@@ -476,6 +476,7 @@ const getProductsByCategory = async (req = request, res = response) => {
             const marca = await db.query(`SELECT * FROM marca WHERE marca_id = ${product.rows[0].marca_id}`);
 
             productos.push({
+                producto_id : product.rows[0].producto_id,
                 titulo : product.rows[0].titulo,
                 imagen : product.rows[0].imagen,
                 descripcion : product.rows[0].descripcion,

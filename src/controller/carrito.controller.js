@@ -318,7 +318,7 @@ const checkout = async (req, res) => {
 
         neo.shift();
         for (let prod of neo) {
-            neoCompra.buyProducto(prod);
+           await neoCompra.buyProducto(prod);
          }
 
         return res.status(200).json({
